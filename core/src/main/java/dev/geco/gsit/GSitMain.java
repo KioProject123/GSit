@@ -17,7 +17,6 @@ import dev.geco.gsit.event.SitEventHandler;
 import dev.geco.gsit.event.PlayerEventHandler;
 import dev.geco.gsit.event.PlayerSitEventHandler;
 import dev.geco.gsit.event.feature.SpinConfusionEventHandler;
-import dev.geco.gsit.metric.BStatsMetric;
 import dev.geco.gsit.link.GriefPreventionLink;
 import dev.geco.gsit.link.PlaceholderAPILink;
 import dev.geco.gsit.link.PlotSquaredLink;
@@ -309,23 +308,6 @@ public class GSitMain extends JavaPlugin {
     }
 
     private void setupBStatsMetric() {
-        BStatsMetric bStatsMetric = new BStatsMetric(this, BSTATS_RESOURCE_ID);
-
-        bStatsMetric.addCustomChart(new BStatsMetric.SimplePie("plugin_language", () -> configService.L_LANG));
-        bStatsMetric.addCustomChart(new BStatsMetric.AdvancedPie("minecraft_version_player_amount", () -> Map.of(versionService.getServerVersion(), Bukkit.getOnlinePlayers().size())));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("use_sit_feature", () -> sitService.getSitUsageCount()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("seconds_sit_feature", () -> (int) sitService.getSitUsageTimeInSeconds()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("use_psit_feature", () -> playerSitService.getPlayerSitUsageCount()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("seconds_psit_feature", () -> (int) playerSitService.getPlayerSitUsageTimeInSeconds()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("use_pose_feature", () -> poseService.getPoseUsageCount()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("seconds_pose_feature", () -> (int) poseService.getPoseUsageTimeInSeconds()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("use_crawl_feature", () -> crawlService.getCrawlUsageCount()));
-        bStatsMetric.addCustomChart(new BStatsMetric.SingleLineChart("seconds_crawl_feature", () -> (int) crawlService.getCrawlUsageTimeInSeconds()));
-
-        sitService.resetSitUsageStats();
-        playerSitService.resetPlayerSitUsageStats();
-        poseService.resetPoseUsageStats();
-        crawlService.resetCrawlUsageStats();
     }
 
 }

@@ -29,19 +29,6 @@ allprojects {
 
 dependencies {
     api(project(":core"))
-    api(project(":v1_17_1", configuration = "reobf"))
-    api(project(":v1_18", configuration = "reobf"))
-    api(project(":v1_18_2", configuration = "reobf"))
-    api(project(":v1_19", configuration = "reobf"))
-    api(project(":v1_19_1", configuration = "reobf"))
-    api(project(":v1_19_3", configuration = "reobf"))
-    api(project(":v1_19_4", configuration = "reobf"))
-    api(project(":v1_20", configuration = "reobf"))
-    api(project(":v1_20_2", configuration = "reobf"))
-    api(project(":v1_20_3", configuration = "reobf"))
-    api(project(":v1_20_5", configuration = "reobf"))
-    api(project(":v1_21", configuration = "reobf"))
-    api(project(":v1_21_2", configuration = "reobf"))
     api(project(":v1_21_4", configuration = "reobf"))
 }
 
