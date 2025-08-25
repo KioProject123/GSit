@@ -26,16 +26,19 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class SitService {
 
     public static final double STAIR_XZ_OFFSET = 0.123d;
     public static final double STAIR_Y_OFFSET = 0.5d;
+    public static final String SIT_TAG = GSitMain.NAME + "_sit";
 
     private final GSitMain gSitMain;
     private final double baseOffset;
     private final HashMap<UUID, GSeat> seats = new HashMap<>();
     private final HashMap<Block, Set<GSeat>> blockSeats = new HashMap<>();
+    private final HashSet<UUID> entityBlocked = new HashSet<>();
     private int sitUsageCount = 0;
     private long sitUsageNanoTime = 0;
 
@@ -56,11 +59,13 @@ public class SitService {
 
     public boolean isBlockWithSeat(Block block) { return blockSeats.containsKey(block); }
 
+    public boolean isEntityBlocked(Entity entity) { return entityBlocked.contains(entity.getUniqueId()); }
+
     public Set<GSeat> getSeatsByBlock(Block block) { return blockSeats.getOrDefault(block, Collections.emptySet()); }
 
     public boolean kickSeatEntitiesFromBlock(Block block, LivingEntity entity) {
         if(!isBlockWithSeat(block)) return true;
-        if(!gSitMain.getPermissionService().hasPermission(entity, "Kick.Sit")) return false;
+        if(!gSitMain.getPermissionService().hasPermission(entity, "Kick.Sit", "Kick.*")) return false;
         for(GSeat seat : getSeatsByBlock(block)) if(!removeSeat(seat, GStopReason.KICKED)) return false;
         return true;
     }
@@ -68,6 +73,8 @@ public class SitService {
     public GSeat createSeat(Block block, LivingEntity entity) { return createSeat(block, entity, true, 0d, 0d, 0d, entity.getLocation().getYaw(), gSitMain.getConfigService().CENTER_BLOCK); }
 
     public GSeat createSeat(Block block, LivingEntity entity, boolean canRotate, double xOffset, double yOffset, double zOffset, float seatRotation, boolean sitInBlockCenter) {
+        if(entityBlocked.contains(entity.getUniqueId())) return null;
+
         Location returnLocation = entity.getLocation();
         Location seatLocation = getSeatLocation(block, returnLocation, xOffset, yOffset, zOffset, sitInBlockCenter);
         if(!gSitMain.getEntityUtil().isSitLocationValid(seatLocation)) return null;
@@ -112,11 +119,10 @@ public class SitService {
             if(playerMoveEvent.isCancelled()) return;
         }
 
-        Set<GSeat> seats = blockSeats.get(seat.getBlock());
-        if(seats != null) seats.remove(seat);
+        Set<GSeat> blockSeatList = blockSeats.get(seat.getBlock());
+        if(blockSeatList != null) blockSeatList.remove(seat);
         seat.setBlock(seat.getBlock().getRelative(blockDirection));
-        seats = blockSeats.get(seat.getBlock());
-        if(seats != null) seats.add(seat);
+        blockSeats.computeIfAbsent(seat.getBlock(), k -> new HashSet<>()).add(seat);
         seat.setLocation(seat.getLocation().add(blockDirection.getModX(), blockDirection.getModY(), blockDirection.getModZ()));
         gSitMain.getEntityUtil().setEntityLocation(seat.getSeatEntity(), seat.getLocation());
     }
@@ -129,11 +135,17 @@ public class SitService {
         if(preEntityStopSitEvent.isCancelled() && stopReason.isCancellable()) return false;
 
         Entity entity = seat.getEntity();
+        entityBlocked.add(entity.getUniqueId());
         if(useSafeDismount) handleSafeSeatDismount(seat);
 
-        blockSeats.remove(seat.getBlock());
+        Set<GSeat> blockSeatList = blockSeats.remove(seat.getBlock());
+        if(blockSeatList != null) {
+            blockSeatList.remove(seat);
+            if(blockSeatList.isEmpty()) blockSeats.remove(seat.getBlock());
+        }
         seats.remove(entity.getUniqueId());
         seat.getSeatEntity().remove();
+        entityBlocked.remove(entity.getUniqueId());
         Bukkit.getPluginManager().callEvent(new EntityStopSitEvent(seat, stopReason));
         sitUsageNanoTime += seat.getLifetimeInNanoSeconds();
 
@@ -143,20 +155,23 @@ public class SitService {
     public void handleSafeSeatDismount(GSeat seat) {
         Entity entity = seat.getEntity();
 
-        Material blockType = seat.getBlock().getType();
-        Location upLocation = seat.getLocation().add(0d, baseOffset + (Tag.STAIRS.isTagged(blockType) ? STAIR_Y_OFFSET : 0d) - gSitMain.getConfigService().S_SITMATERIALS.getOrDefault(blockType, 0d), 0d);
+        try {
+            Material blockType = seat.getBlock().getType();
+            Location upLocation = seat.getLocation().add(0d, baseOffset + (Tag.STAIRS.isTagged(blockType) ? STAIR_Y_OFFSET : 0d) - gSitMain.getConfigService().S_SITMATERIALS.getOrDefault(blockType, 0d), 0d);
 
-        Location returnLocation = gSitMain.getConfigService().GET_UP_RETURN ? seat.getReturnLocation() : upLocation;
+            Location returnLocation = gSitMain.getConfigService().GET_UP_RETURN ? seat.getReturnLocation() : upLocation;
 
-        gSitMain.getTaskService().runDelayed(() -> {
             Location entityLocation = entity.getLocation();
 
             returnLocation.setYaw(entityLocation.getYaw());
             returnLocation.setPitch(entityLocation.getPitch());
 
-            if(seat.getSeatEntity().isValid()) gSitMain.getEntityUtil().setEntityLocation(seat.getSeatEntity(), returnLocation);
             if(entity.isValid()) gSitMain.getEntityUtil().setEntityLocation(entity, returnLocation);
-        }, 0);
+            if(seat.getSeatEntity().isValid() && !gSitMain.getVersionManager().isNewerOrVersion(17, 0)) gSitMain.getEntityUtil().setEntityLocation(seat.getSeatEntity(), returnLocation);
+        } catch(Throwable e) {
+            // If we can't access the block, entity or seat entity data in a Folia server environment we ignore this error
+            if(!gSitMain.isFoliaServer()) gSitMain.getLogger().log(Level.SEVERE, "Could not safely dismount the entity!", e);
+        }
     }
 
     public GSeat createStairSeatForEntity(Block block, LivingEntity entity) {

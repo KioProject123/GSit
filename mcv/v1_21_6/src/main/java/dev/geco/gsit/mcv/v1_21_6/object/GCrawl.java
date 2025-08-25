@@ -1,4 +1,4 @@
-package dev.geco.gsit.mcv.v1_21_4.object;
+package dev.geco.gsit.mcv.v1_21_6.object;
 
 import dev.geco.gsit.GSitMain;
 import dev.geco.gsit.object.GStopReason;
@@ -84,14 +84,16 @@ public class GCrawl implements IGCrawl {
         int blockSize = (int) ((tickLocation.getY() - tickLocation.getBlockY()) * 100);
         tickLocation.setY(tickLocation.getBlockY() + (blockSize >= 40 ? 2.49 : 1.49));
         Block aboveBlock = tickLocation.getBlock();
-        boolean hasSolidBlackAbove = aboveBlock.getBoundingBox().contains(tickLocation.toVector()) && !aboveBlock.getCollisionShape().getBoundingBoxes().isEmpty();
-        if(hasSolidBlackAbove) {
+        boolean hasSolidBlockAbove = aboveBlock.getBoundingBox().contains(tickLocation.toVector()) && !aboveBlock.getCollisionShape().getBoundingBoxes().isEmpty();
+        if(hasSolidBlockAbove) {
             destoryEntity();
             return;
         }
 
         Location playerLocation = location.clone();
         gSitMain.getTaskService().run(() -> {
+            if(finished) return;
+
             int height = locationBlock.getBoundingBox().getHeight() >= 0.4 || playerLocation.getY() % 0.015625 == 0.0 ? (player.getFallDistance() > 0.7 ? 0 : blockSize) : 0;
 
             playerLocation.setY(playerLocation.getY() + (height >= 40 ? 1.5 : 0.5));
@@ -105,7 +107,7 @@ public class GCrawl implements IGCrawl {
                 serverPlayer.connection.send(new ClientboundSetEntityDataPacket(boxEntity.getId(), boxEntity.getEntityData().getNonDefaultValues()));
             } else {
                 serverPlayer.connection.send(new ClientboundSetEntityDataPacket(boxEntity.getId(), boxEntity.getEntityData().getNonDefaultValues()));
-                boxEntity.teleportTo(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ());
+                boxEntity.setPosRaw(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ(), true);
                 serverPlayer.connection.send(new ClientboundTeleportEntityPacket(boxEntity.getId(), net.minecraft.world.entity.PositionMoveRotation.of(boxEntity), Set.of(), false));
             }
         }, true, playerLocation);

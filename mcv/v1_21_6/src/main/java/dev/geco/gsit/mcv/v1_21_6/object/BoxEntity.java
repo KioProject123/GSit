@@ -1,4 +1,4 @@
-package dev.geco.gsit.mcv.v1_21_4.object;
+package dev.geco.gsit.mcv.v1_21_6.object;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntityType;

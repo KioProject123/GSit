@@ -1,8 +1,8 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("com.gradleup.shadow") version "9.0.0-beta11"
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16" apply false
+    id("com.gradleup.shadow") version "9.0.0-rc1"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.18" apply false
 }
 
 allprojects {
@@ -12,10 +12,10 @@ allprojects {
         mavenLocal()
         mavenCentral()
 
-        maven(url = "https://repo.papermc.io/repository/maven-public/")
-        maven(url = "https://maven.enginehub.org/repo/")
-        maven(url = "https://repo.extendedclip.com/content/repositories/placeholderapi/")
-        maven(url = "https://jitpack.io/")
+        maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://maven.enginehub.org/repo/")
+        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+        maven("https://jitpack.io/")
     }
 
     tasks.compileJava {
@@ -29,7 +29,7 @@ allprojects {
 
 dependencies {
     api(project(":core"))
-    api(project(":v1_21_4", configuration = "reobf"))
+    api(project(":v1_21_6", io.papermc.paperweight.util.constants.REOBF_CONFIG))
 }
 
 tasks {
@@ -37,7 +37,7 @@ tasks {
         archiveClassifier = ""
         minimize()
         manifest {
-            attributes["paperweight-mappings-namespace"] = "spigot"
+            attributes["paperweight-mappings-namespace"] = io.papermc.paperweight.util.constants.SPIGOT_NAMESPACE
         }
     }
 

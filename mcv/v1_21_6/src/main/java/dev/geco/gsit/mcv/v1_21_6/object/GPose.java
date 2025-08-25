@@ -1,4 +1,4 @@
-package dev.geco.gsit.mcv.v1_21_4.object;
+package dev.geco.gsit.mcv.v1_21_6.object;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
@@ -89,6 +89,7 @@ public class GPose implements IGPose {
     private final Location blockLocation;
     private final Block bedBlock;
     private final BlockPos bedPos;
+    private final double height;
     private final Direction direction;
     protected ClientboundBlockUpdatePacket setBedPacket;
     protected ClientboundPlayerInfoUpdatePacket addNpcInfoPacket;
@@ -122,11 +123,12 @@ public class GPose implements IGPose {
         bedPos = new BlockPos(blockLocation.getBlockX(), blockLocation.getBlockY(), blockLocation.getBlockZ());
 
         playerNpc = createNPC();
-        double offset = seatLocation.getY() + gSitMain.getSitService().getBaseOffset();
+        height = seatLocation.getY() + gSitMain.getSitService().getBaseOffset();
         double scale = serverPlayer.getScale();
+        double offset = height;
         if(pose == org.bukkit.entity.Pose.SLEEPING) offset += 0.1125d * scale;
         if(pose == org.bukkit.entity.Pose.SWIMMING) offset += -0.19 * scale;
-        playerNpc.moveTo(seatLocation.getX(), offset, seatLocation.getZ(), 0f, 0f);
+        playerNpc.absSnapTo(seatLocation.getX(), offset, seatLocation.getZ(), 0f, 0f);
 
         direction = getDirection();
         if(pose == org.bukkit.entity.Pose.SLEEPING) setBedPacket = new ClientboundBlockUpdatePacket(bedPos, Blocks.WHITE_BED.defaultBlockState().setValue(BedBlock.FACING, direction.getOpposite()).setValue(BedBlock.PART, BedPart.HEAD));
@@ -205,11 +207,8 @@ public class GPose implements IGPose {
         if(pose == Pose.SLEEPING) packages.add(setBedPacket);
         packages.add(metaNpcPacket);
         packages.add(attributeNpcPacket);
-        if(pose == Pose.SLEEPING) {
-            packages.add(teleportNpcPacket);
-            packages.add(teleportNpcPacket);
-        }
         if(pose == Pose.SPIN_ATTACK) packages.add(rotateNpcPacket);
+        if(pose == Pose.SLEEPING) packages.add(teleportNpcPacket);
 
         bundle = new ClientboundBundlePacket(packages);
 
@@ -259,7 +258,16 @@ public class GPose implements IGPose {
         });
     }
 
-    private void addViewerPlayer(Player player) { sendPacket(player, bundle); }
+    private void addViewerPlayer(Player player) {
+        sendPacket(player, bundle);
+        if(pose != Pose.SLEEPING || height < 1) return;
+        gSitMain.getTaskService().runDelayed(() -> {
+            sendPacket(player, teleportNpcPacket);
+            gSitMain.getTaskService().runDelayed(() -> {
+                sendPacket(player, teleportNpcPacket);
+            }, player, 1);
+        }, player, 1);
+    }
 
     @Override
     public void remove() {

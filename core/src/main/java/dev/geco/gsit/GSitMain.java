@@ -74,8 +74,9 @@ public class GSitMain extends JavaPlugin {
     private PlaceholderAPILink placeholderAPILink;
     private PlotSquaredLink plotSquaredLink;
     private WorldGuardLink worldGuardLink;
-    private boolean supportsPaperFeature = false;
     private boolean supportsTaskFeature = false;
+    private boolean isPaperServer = false;
+    private boolean isFoliaServer = false;
 
     public static GSitMain getInstance() { return gSitMain; }
 
@@ -119,9 +120,11 @@ public class GSitMain extends JavaPlugin {
 
     public WorldGuardLink getWorldGuardLink() { return worldGuardLink; }
 
-    public boolean supportsPaperFeature() { return supportsPaperFeature; }
-
     public boolean supportsTaskFeature() { return supportsTaskFeature; }
+
+    public boolean isPaperServer() { return isPaperServer; }
+
+    public boolean isFoliaServer() { return isFoliaServer; }
 
     public void onLoad() {
         gSitMain = this;
@@ -146,7 +149,7 @@ public class GSitMain extends JavaPlugin {
 
         loadFeatures();
 
-        messageService = supportsPaperFeature && versionService.isNewerOrVersion(18, 2) ? new PaperMessageService(this) : new SpigotMessageService(this);
+        messageService = isPaperServer && versionService.isNewerOrVersion(18, 2) ? new PaperMessageService(this) : new SpigotMessageService(this);
     }
 
     public void onEnable() {
@@ -258,14 +261,19 @@ public class GSitMain extends JavaPlugin {
 
     private void loadFeatures() {
         try {
-            Class.forName("io.papermc.paper.event.entity.EntityMoveEvent");
-            supportsPaperFeature = true;
-        } catch(ClassNotFoundException e) { supportsPaperFeature = false; }
-
-        try {
             Class.forName("io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler");
             supportsTaskFeature = true;
         } catch(ClassNotFoundException e) { supportsTaskFeature = false; }
+
+        try {
+            Class.forName("io.papermc.paper.event.entity.EntityMoveEvent");
+            isPaperServer = true;
+        } catch(ClassNotFoundException e) { isPaperServer = false; }
+
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServerInitEvent");
+            isFoliaServer = true;
+        } catch(ClassNotFoundException e) { isFoliaServer = false; }
 
         if(Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
             worldGuardLink = new WorldGuardLink();
@@ -275,7 +283,7 @@ public class GSitMain extends JavaPlugin {
 
     private void loadPluginDependencies() {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("GriefPrevention");
-        if(plugin != null && plugin.isEnabled()) griefPreventionLink = new GriefPreventionLink(this);
+        if(plugin != null && plugin.isEnabled() && configService.TRUSTED_REGION_ONLY) griefPreventionLink = new GriefPreventionLink(this);
         else griefPreventionLink = null;
 
         plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
@@ -285,7 +293,7 @@ public class GSitMain extends JavaPlugin {
         } else placeholderAPILink = null;
 
         plugin = Bukkit.getPluginManager().getPlugin("PlotSquared");
-        if(plugin != null && plugin.isEnabled()) {
+        if(plugin != null && plugin.isEnabled() && configService.TRUSTED_REGION_ONLY) {
             plotSquaredLink = new PlotSquaredLink(this);
             if(!plotSquaredLink.isPlotSquaredVersionSupported()) plotSquaredLink = null;
         } else plotSquaredLink = null;

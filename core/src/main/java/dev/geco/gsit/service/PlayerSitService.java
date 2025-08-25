@@ -87,7 +87,8 @@ public class PlayerSitService {
             topToBottomStacks.remove(passengers.getKey());
             for(UUID passenger : passengers.getValue()) {
                 Entity passengerEntity = Bukkit.getEntity(passenger);
-                if(passengerEntity != null) passengerEntity.remove();
+                if(passengerEntity == null) continue;
+                passengerEntity.remove();
             }
             String key = source.getUniqueId().toString() + passengers.getKey();
             Long spawnTime = spawnTimes.get(key);
@@ -102,7 +103,8 @@ public class PlayerSitService {
             bottomToTopStacks.remove(vehicles.getKey());
             for(UUID vehicle : vehicles.getValue()) {
                 Entity vehicleEntity = Bukkit.getEntity(vehicle);
-                if(vehicleEntity != null) vehicleEntity.remove();
+                if(vehicleEntity == null) continue;
+                vehicleEntity.remove();
             }
             String key = vehicles.getKey().toString() + source.getUniqueId();
             Long spawnTime = spawnTimes.get(key);

@@ -1,9 +1,14 @@
 rootProject.name = "GSit"
 
 include(":core")
-include(":v1_21_4")
-project(":v1_21_4").projectDir = file("mcv/v1_21_4")
+
+listOf(
+    "v1_21_6"
+).forEach {
+    include(":$it")
+    project(":$it").projectDir = file("mcv/$it")
+}
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
