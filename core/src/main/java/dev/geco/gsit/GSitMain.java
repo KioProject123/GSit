@@ -2,15 +2,6 @@ package dev.geco.gsit;
 
 import dev.geco.gsit.api.event.GSitLoadedEvent;
 import dev.geco.gsit.api.event.GSitReloadEvent;
-import dev.geco.gsit.cmd.GBellyFlopCommand;
-import dev.geco.gsit.cmd.GCrawlCommand;
-import dev.geco.gsit.cmd.GLayCommand;
-import dev.geco.gsit.cmd.GSitCommand;
-import dev.geco.gsit.cmd.GSitReloadCommand;
-import dev.geco.gsit.cmd.GSpinCommand;
-import dev.geco.gsit.cmd.tab.EmptyTabComplete;
-import dev.geco.gsit.cmd.tab.GCrawlTabComplete;
-import dev.geco.gsit.cmd.tab.GSitTabComplete;
 import dev.geco.gsit.event.BlockEventHandler;
 import dev.geco.gsit.event.EntityEventHandler;
 import dev.geco.gsit.event.SitEventHandler;
@@ -210,22 +201,6 @@ public class GSitMain extends JavaPlugin {
     }
 
     private void setupCommands() {
-        getCommand("gsit").setExecutor(new GSitCommand(this));
-        getCommand("gsit").setTabCompleter(new GSitTabComplete(this));
-        getCommand("glay").setExecutor(new GLayCommand(this));
-        getCommand("glay").setTabCompleter(new EmptyTabComplete());
-        getCommand("glay").setPermissionMessage(messageService.getMessage("Messages.command-permission-error"));
-        getCommand("gbellyflop").setExecutor(new GBellyFlopCommand(this));
-        getCommand("gbellyflop").setTabCompleter(new EmptyTabComplete());
-        getCommand("gbellyflop").setPermissionMessage(messageService.getMessage("Messages.command-permission-error"));
-        getCommand("gspin").setExecutor(new GSpinCommand(this));
-        getCommand("gspin").setTabCompleter(new EmptyTabComplete());
-        getCommand("gspin").setPermissionMessage(messageService.getMessage("Messages.command-permission-error"));
-        getCommand("gcrawl").setExecutor(new GCrawlCommand(this));
-        getCommand("gcrawl").setTabCompleter(new GCrawlTabComplete(this));
-        getCommand("gsitreload").setExecutor(new GSitReloadCommand(this));
-        getCommand("gsitreload").setTabCompleter(new EmptyTabComplete());
-        getCommand("gsitreload").setPermissionMessage(messageService.getMessage("Messages.command-permission-error"));
     }
 
     private void setupEvents() {

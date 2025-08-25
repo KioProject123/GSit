@@ -8,48 +8,6 @@ api-version: 1.16
 folia-supported: true
 softdepend: [GriefPrevention, PlaceholderAPI, PlotSquared, WorldGuard]
 
-commands:
-
-  gsit:
-
-    usage: /<command> [toggle|playertoggle]
-    aliases: [sit]
-    description: Sit command
-
-  glay:
-
-    usage: /<command>
-    aliases: [lay]
-    description: Lay command
-    permission: GSit.Lay
-
-  gbellyflop:
-
-    usage: /<command>
-    aliases: [bellyflop]
-    description: BellyFlop command
-    permission: GSit.BellyFlop
-
-  gspin:
-
-    usage: /<command>
-    aliases: [spin]
-    description: Spin command
-    permission: GSit.Spin
-
-  gcrawl:
-
-    usage: /<command> [toggle]
-    aliases: [crawl]
-    description: Crawl command
-
-  gsitreload:
-
-    usage: /<command>
-    aliases: [gsitrl]
-    description: Plugin reload command
-    permission: GSit.Reload
-
 permissions:
 
   GSit.*:
