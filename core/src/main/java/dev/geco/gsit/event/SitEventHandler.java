@@ -37,9 +37,18 @@ public class SitEventHandler implements Listener {
         Action action = event.getAction();
         if(event.getHand() != EquipmentSlot.HAND || action != Action.RIGHT_CLICK_BLOCK) return;
 
-        if(event.getBlockFace() != BlockFace.UP) return;
-
         if(gSitMain.getConfigService().S_EMPTY_HAND_ONLY && event.getItem() != null) return;
+
+        // KioCG start: 只能点击方块内部
+        {
+            Location interactionPoint = event.getInteractionPoint();
+            if (interactionPoint.getX() == (int) interactionPoint.getX()
+                || interactionPoint.getY() == (int) interactionPoint.getY()
+                || interactionPoint.getZ() == (int) interactionPoint.getZ()) {
+                return;
+            }
+        }
+        // KioCG end: 只能点击方块内部
 
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock();
@@ -65,11 +74,13 @@ public class SitEventHandler implements Listener {
 
         if(!gSitMain.getEnvironmentUtil().canUseInLocation(location, player, "sit")) return;
 
-        RayTraceResult targetRayTrack = player.rayTraceBlocks(blockInteractionRangeAttribute != null ? player.getAttribute(blockInteractionRangeAttribute).getValue() : 5);
-        BlockFace targetBlockFace = targetRayTrack != null ? targetRayTrack.getHitBlockFace() : null;
-        if(targetBlockFace != null && targetBlockFace != BlockFace.UP) return;
-        Block targetBlock = targetRayTrack != null ? targetRayTrack.getHitBlock() : null;
-        if(targetBlock != null && !clickedBlock.equals(targetBlock)) return;
+        // KioCG start
+        // RayTraceResult targetRayTrack = player.rayTraceBlocks(blockInteractionRangeAttribute != null ? player.getAttribute(blockInteractionRangeAttribute).getValue() : 5);
+        // BlockFace targetBlockFace = targetRayTrack != null ? targetRayTrack.getHitBlockFace() : null;
+        // if(targetBlockFace != null && targetBlockFace != BlockFace.UP) return;
+        // Block targetBlock = targetRayTrack != null ? targetRayTrack.getHitBlock() : null;
+        // if(targetBlock != null && !clickedBlock.equals(targetBlock)) return;
+        // KioCG end
 
         if(!gSitMain.getToggleService().canEntityUseSit(player.getUniqueId())) return;
 
@@ -81,7 +92,7 @@ public class SitEventHandler implements Listener {
 
                 if(gSitMain.getSitService().createStairSeatForEntity(clickedBlock, player) != null) {
 
-                    player.swingHand(event.getHand());
+                    player.swingHand(event.getHand()); // KioCG
                     event.setCancelled(true);
                     return;
                 }
@@ -119,7 +130,7 @@ public class SitEventHandler implements Listener {
         }
 
         if(gSitMain.getSitService().createSeat(clickedBlock, player, true, interactionPointAvailable ? xoffset : 0d, 0d, interactionPointAvailable ? zoffset : 0, player.getLocation().getYaw(), true) != null) {
-            player.swingHand(event.getHand());
+            player.swingHand(event.getHand()); // KioCG
             event.setCancelled(true);
         }
     }
