@@ -81,6 +81,7 @@ public class SitEventHandler implements Listener {
 
                 if(gSitMain.getSitService().createStairSeatForEntity(clickedBlock, player) != null) {
 
+                    player.swingHand(event.getHand());
                     event.setCancelled(true);
                     return;
                 }
@@ -117,7 +118,10 @@ public class SitEventHandler implements Listener {
             } catch(Throwable ignored) { }
         }
 
-        if(gSitMain.getSitService().createSeat(clickedBlock, player, true, interactionPointAvailable ? xoffset : 0d, 0d, interactionPointAvailable ? zoffset : 0, player.getLocation().getYaw(), true) != null) event.setCancelled(true);
+        if(gSitMain.getSitService().createSeat(clickedBlock, player, true, interactionPointAvailable ? xoffset : 0d, 0d, interactionPointAvailable ? zoffset : 0, player.getLocation().getYaw(), true) != null) {
+            player.swingHand(event.getHand());
+            event.setCancelled(true);
+        }
     }
 
 }
